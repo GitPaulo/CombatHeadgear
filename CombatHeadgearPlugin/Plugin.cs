@@ -12,7 +12,7 @@ namespace CombatHeadgearPlugin;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    public readonly WindowSystem WindowSystem = new("SamplePlugin");
+    public readonly WindowSystem WindowSystem = new("CombatHeadgearPlugin");
     const string CommandName = "/combatheadgear";
     
     private DalamudPluginInterface PluginInterface { get; init; }
