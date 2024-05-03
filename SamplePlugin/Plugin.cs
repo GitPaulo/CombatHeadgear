@@ -1,81 +1,100 @@
-﻿using Dalamud.Game.Command;
+﻿using Dalamud.Game;
+using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using System.IO;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Logging;
 using SamplePlugin.Windows;
 
 namespace SamplePlugin;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    private const string CommandName = "/pmycommand";
-
+    public readonly WindowSystem WindowSystem = new("SamplePlugin");
+    private const string CommandName = "/combatheadgear";
+    
     private DalamudPluginInterface PluginInterface { get; init; }
     private ICommandManager CommandManager { get; init; }
-    public Configuration Configuration { get; init; }
-
-    public readonly WindowSystem WindowSystem = new("SamplePlugin");
+    private IClientState ClientState { get; init; }
+    private IFramework Framework { get; init; }
+    private IChatGui Chat { get; init; }
     private ConfigWindow ConfigWindow { get; init; }
-    private MainWindow MainWindow { get; init; }
+    private HeadgearCommandExecutor HeadgearExecutor { get; init; }
+    public Configuration Configuration { get; init; }
+    
+    private bool lastCombatStatus;
+    private bool isPluginDisabled;
 
     public Plugin(
         [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
         [RequiredVersion("1.0")] ICommandManager commandManager,
-        [RequiredVersion("1.0")] ITextureProvider textureProvider)
+        [RequiredVersion("1.0")] IClientState clientState,
+        [RequiredVersion("1.0")] IFramework framework,
+        [RequiredVersion("1.0")] ISigScanner sigScanner,
+        IChatGui chat)
     {
         PluginInterface = pluginInterface;
         CommandManager = commandManager;
+        ClientState = clientState;
+        Framework = framework;
+        Chat = chat;
+        
+        HeadgearExecutor = new HeadgearCommandExecutor(sigScanner);
 
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Configuration.Initialize(PluginInterface);
-
-        // you might normally want to embed resources and load them from the manifest stream
-        var file = new FileInfo(Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png"));
-
-        // ITextureProvider takes care of the image caching and dispose
-        var goatImage = textureProvider.GetTextureFromFile(file);
-
         ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, goatImage);
-
         WindowSystem.AddWindow(ConfigWindow);
-        WindowSystem.AddWindow(MainWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "A useful message to display in /xlhelp"
+            HelpMessage = "Toggle headgear visibility in and out of combat."
         });
 
-        PluginInterface.UiBuilder.Draw += DrawUI;
-
-        // This adds a button to the plugin installer entry of this plugin which allows
-        // to toggle the display status of the configuration ui
-        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
-
-        // Adds another button that is doing the same but for the main ui of the plugin
-        PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
+        Framework.Update += OnFrameworkUpdate;
+        PluginInterface.UiBuilder.Draw += DrawUi;
+        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
     }
 
     public void Dispose()
     {
         WindowSystem.RemoveAllWindows();
-
         ConfigWindow.Dispose();
-        MainWindow.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
+        Framework.Update -= OnFrameworkUpdate;
     }
 
     private void OnCommand(string command, string args)
     {
-        // in response to the slash command, just toggle the display status of our main ui
-        ToggleMainUI();
+        isPluginDisabled = !isPluginDisabled;
+        PluginLog.Log(isPluginDisabled ? "Plugin is now disabled." : "Plugin is now enabled.");
     }
 
-    private void DrawUI() => WindowSystem.Draw();
+    private void DrawUi() => WindowSystem.Draw();
 
-    public void ToggleConfigUI() => ConfigWindow.Toggle();
-    public void ToggleMainUI() => MainWindow.Toggle();
+    public void ToggleConfigUi() => ConfigWindow.Toggle();
+
+    private void OnFrameworkUpdate(IFramework framework)
+    {
+        if (ClientState.LocalPlayer is { } player)
+        {
+            bool inCombat = player.StatusFlags.HasFlag(StatusFlags.InCombat);
+
+            if (inCombat != lastCombatStatus)
+            {
+                lastCombatStatus = inCombat;
+                ToggleHeadgear(inCombat);
+            }
+        }
+    }
+
+    private void ToggleHeadgear(bool inCombat)
+    {
+        HeadgearExecutor.ExecuteHeadgearCommand(inCombat);
+        PluginLog.Debug($"Toggled headgear visibility. In combat: {inCombat}");
+        Chat.Print($"Toggled headgear visibility. In combat: {inCombat}");
+    }
 }
