@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Logging;
 
-namespace SamplePlugin
+namespace CombatHeadgearPlugin
 {
     public class HeadgearCommandExecutor
     {

@@ -6,14 +6,14 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Logging;
-using SamplePlugin.Windows;
+using CombatHeadgearPlugin.Windows;
 
-namespace SamplePlugin;
+namespace CombatHeadgearPlugin;
 
 public sealed class Plugin : IDalamudPlugin
 {
     public readonly WindowSystem WindowSystem = new("SamplePlugin");
-    private const string CommandName = "/combatheadgear";
+    const string CommandName = "/combatheadgear";
     
     private DalamudPluginInterface PluginInterface { get; init; }
     private ICommandManager CommandManager { get; init; }
