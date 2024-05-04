@@ -13,6 +13,7 @@ public sealed class Plugin : IDalamudPlugin
 {
     public readonly WindowSystem WindowSystem = new("CombatHeadgearPlugin");
     const string CommandName = "/combatheadgear";
+    const string CommandAlias = "/chg";
 
     private DalamudPluginInterface PluginInterface { get; init; }
     private ICommandManager CommandManager { get; init; }
@@ -51,7 +52,11 @@ public sealed class Plugin : IDalamudPlugin
         {
             HelpMessage = "Toggle headgear visibility in and out of combat."
         });
-
+        CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand)
+        {
+            HelpMessage = "Toggle headgear visibility in and out of combat. [alias]"
+        });
+        
         Framework.Update += OnFrameworkUpdate;
         PluginInterface.UiBuilder.Draw += DrawUi;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
@@ -63,6 +68,7 @@ public sealed class Plugin : IDalamudPlugin
         ConfigWindow.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
+        CommandManager.RemoveHandler(CommandAlias);
         Framework.Update -= OnFrameworkUpdate;
     }
 
