@@ -4,3 +4,5 @@ U-Uhmm, yea so, this toggles your headgear in-out of combat automatically with a
 
 - `/chg` or `/combatheadgear` to disabled or enable the behaviour
 - Check the configuration menu through dalamud for more options
+
+### Installation through `https://raw.githubusercontent.com/GitPaulo/CombatHeadgear/main/repo.json`
