@@ -3,7 +3,7 @@
         "Author": "GitPaulo",
         "Name": "Combat Headgear",
         "Description": "Toggle headgear visibility in and out of combat.",
-        "InternalName": "CombatHeadgear",
+        "InternalName": "CombatHeadgearPlugin",
         "AssemblyVersion": "1.0.0",
         "RepoUrl": "https://github.com/GitPaulo/CombatHeadgear",
         "IconUrl": "https://raw.githubusercontent.com/GitPaulo/CombatHeadgear/master/Data/icon.png",
