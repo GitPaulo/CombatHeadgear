@@ -5,6 +5,7 @@
     "InternalName": "CombatHeadgearPlugin",
     "AssemblyVersion": "1.0.0",
     "RepoUrl": "https://github.com/GitPaulo/CombatHeadgear",
+    "IconUrl": "https://raw.githubusercontent.com/GitPaulo/CombatHeadgear/main/Data/icon.png",
     "ApplicableVersion": "any",
     "Tags": [
         "dalamud",
@@ -13,12 +14,11 @@
         "combat"
     ],
     "DalamudApiLevel": 9,
-    "IconUrl": "https://i.imgur.com/h2PHomx.png",
     "IsHide": "False",
     "IsTestingExclusive": "False",
     "LastUpdated": 1708943558,
-    "DownloadCount": 0,
-    "DownloadLinkInstall": "https://github.com/yourusername/sample-plugin/releases/latest/download/sample-plugin.zip",
-    "DownloadLinkTesting": "https://github.com/yourusername/sample-plugin/releases/latest/download/sample-plugin.zip",
-    "DownloadLinkUpdate": "https://github.com/yourusername/sample-plugin/releases/latest/download/sample-plugin.zip"
+    "DownloadCount": 1,
+    "DownloadLinkInstall": "https://github.com/GitPaulo/CombatHeadgear/releases/download/1.2.0.8/TODO.zip",
+    "DownloadLinkTesting": "https://github.com/GitPaulo/CombatHeadgear/releases/download/1.2.0.8/TODO.zip",
+    "DownloadLinkUpdate": "https://github.com/GitPaulo/CombatHeadgear/releases/download/1.2.0.8/TODO.zip"
 }

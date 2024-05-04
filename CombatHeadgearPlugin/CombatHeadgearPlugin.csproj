@@ -4,17 +4,10 @@
 
   <PropertyGroup>
     <Version>0.0.0.1</Version>
-    <Description>A sample plugin.</Description>
-    <PackageProjectUrl>https://github.com/goatcorp/CombatHeadgearPlugin</PackageProjectUrl>
+    <Description>A Dalamud Plugin to Toggle Headgear on Combat</Description>
+    <PackageProjectUrl>https://github.com/GitPaulo/CombatHeadgear</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <IsPackable>false</IsPackable>
     <RootNamespace>CombatHeadgearPlugin</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="..\Data\goat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-  </ItemGroup>
 </Project>

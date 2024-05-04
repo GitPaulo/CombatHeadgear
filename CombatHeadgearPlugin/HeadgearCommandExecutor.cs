@@ -8,6 +8,7 @@ namespace CombatHeadgearPlugin
     public class HeadgearCommandExecutor
     {
         private delegate void ProcessChatBoxDelegate(IntPtr uiModule, IntPtr message, IntPtr unused, byte a4);
+
         private delegate IntPtr GetUIModuleDelegate(IntPtr basePtr);
 
         private ProcessChatBoxDelegate? ProcessChatBox;
@@ -36,15 +37,34 @@ namespace CombatHeadgearPlugin
             }
         }
 
-        public void ExecuteHeadgearCommand(bool show)
+        public void ExecuteHeadgearCommand(bool show, Configuration configuration)
         {
             if (ProcessChatBox == null || uiModule == IntPtr.Zero)
             {
-                PluginLog.Error("Unable to execute headgear command: ProcessChatBox or uiModule is not initialized.");
+                PluginLog.Error("Unable to execute headgear and visor command: ProcessChatBox or uiModule is not initialized.");
                 return;
             }
 
-            var command = show ? "/displayhead on" : "/displayhead off";
+            if (configuration.SetInverse)
+            {
+                show = !show;
+            }
+
+            if (configuration.ToggleHeadgear)
+            {
+                var headgearCommand = show ? "/displayhead on" : "/displayhead off";
+                ExecuteCommand(headgearCommand);
+            }
+
+            if (configuration.ToggleVisor)
+            {
+                var visorCommand = show ? "/visor on" : "/visor off";
+                ExecuteCommand(visorCommand);
+            }
+        }
+
+        private void ExecuteCommand(string command)
+        {
             var bytes = System.Text.Encoding.UTF8.GetBytes(command);
 
             var mem1 = Marshal.AllocHGlobal(400);

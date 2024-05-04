@@ -5,7 +5,6 @@ using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Logging;
 using CombatHeadgearPlugin.Windows;
 
 namespace CombatHeadgearPlugin;
@@ -14,7 +13,7 @@ public sealed class Plugin : IDalamudPlugin
 {
     public readonly WindowSystem WindowSystem = new("CombatHeadgearPlugin");
     const string CommandName = "/combatheadgear";
-    
+
     private DalamudPluginInterface PluginInterface { get; init; }
     private ICommandManager CommandManager { get; init; }
     private IClientState ClientState { get; init; }
@@ -23,7 +22,7 @@ public sealed class Plugin : IDalamudPlugin
     private ConfigWindow ConfigWindow { get; init; }
     private HeadgearCommandExecutor HeadgearExecutor { get; init; }
     public Configuration Configuration { get; init; }
-    
+
     private bool lastCombatStatus;
     private bool isPluginDisabled;
 
@@ -40,7 +39,7 @@ public sealed class Plugin : IDalamudPlugin
         ClientState = clientState;
         Framework = framework;
         Chat = chat;
-        
+
         HeadgearExecutor = new HeadgearCommandExecutor(sigScanner);
 
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
@@ -70,7 +69,7 @@ public sealed class Plugin : IDalamudPlugin
     private void OnCommand(string command, string args)
     {
         isPluginDisabled = !isPluginDisabled;
-        PluginLog.Log(isPluginDisabled ? "Plugin is now disabled." : "Plugin is now enabled.");
+        Chat.Print(isPluginDisabled ? "Combat Headgear is now disabled." : "Combat Headgear is now enabled.");
     }
 
     private void DrawUi() => WindowSystem.Draw();
@@ -93,8 +92,16 @@ public sealed class Plugin : IDalamudPlugin
 
     private void ToggleHeadgear(bool inCombat)
     {
-        HeadgearExecutor.ExecuteHeadgearCommand(inCombat);
-        PluginLog.Debug($"Toggled headgear visibility. In combat: {inCombat}");
-        Chat.Print($"Toggled headgear visibility. In combat: {inCombat}");
+        if (isPluginDisabled)
+        {
+            return;
+        }
+        
+        HeadgearExecutor.ExecuteHeadgearCommand(inCombat, Configuration);
+
+        if (Configuration.ShouldChatLog)
+        {
+            Chat.Print($"Toggled headgear visibility. In combat: {inCombat}");
+        }
     }
 }
