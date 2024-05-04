@@ -1,8 +1,8 @@
 ﻿{
     "Author": "GitPaulo",
-    "Name": "CombatHeadgear",
+    "Name": "Combat Headgear",
     "Description": "Toggle headgear visibility in and out of combat.",
-    "InternalName": "CombatHeadgearPlugin",
+    "InternalName": "CombatHeadgear",
     "AssemblyVersion": "1.0.0",
     "RepoUrl": "https://github.com/GitPaulo/CombatHeadgear",
     "IconUrl": "https://raw.githubusercontent.com/GitPaulo/CombatHeadgear/master/Data/icon.png",
@@ -11,13 +11,15 @@
         "dalamud",
         "headgear",
         "visibility",
-        "combat"
+        "combat",
+        "GitPaulo",
+        "artin"
     ],
     "DalamudApiLevel": 9,
     "IsHide": "False",
     "IsTestingExclusive": "False",
     "LastUpdated": 1708943558,
-    "DownloadCount": 1,
+    "DownloadCount": 0,
     "DownloadLinkInstall": "https://github.com/GitPaulo/CombatHeadgear/releases/download/test-release-1/CombatHeadgearPlugin-test-release-1.zip",
     "DownloadLinkTesting": "https://github.com/GitPaulo/CombatHeadgear/releases/download/test-release-1/CombatHeadgearPlugin-test-release-1.zip",
     "DownloadLinkUpdate": "https://github.com/GitPaulo/CombatHeadgear/releases/download/test-release-1/CombatHeadgearPlugin-test-release-1.zip"
