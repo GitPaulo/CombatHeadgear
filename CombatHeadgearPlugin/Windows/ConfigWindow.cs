@@ -7,7 +7,7 @@ namespace CombatHeadgearPlugin.Windows;
 
 public class ConfigWindow : Window, IDisposable
 {
-    private Configuration Configuration;
+    private readonly Configuration _configuration;
 
     // We give this window a constant ID using ###
     // This allows for labels being dynamic, like "{FPS Counter}fps###XYZ counter window",
@@ -17,20 +17,18 @@ public class ConfigWindow : Window, IDisposable
         Flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
                 ImGuiWindowFlags.NoScrollWithMouse;
 
-        Size = new Vector2(300, 400);
+        Size = new Vector2(380, 205);
         SizeCondition = ImGuiCond.Always;
 
-        Configuration = plugin.Configuration;
+        _configuration = plugin.Configuration;
     }
 
-    public void Dispose()
-    {
-    }
+    public void Dispose() { }
 
     public override void PreDraw()
     {
         // Flags must be added or removed before Draw() is being called, or they won't apply
-        if (Configuration.IsConfigWindowMovable)
+        if (_configuration.IsConfigWindowMovable)
         {
             Flags &= ~ImGuiWindowFlags.NoMove;
         }
@@ -42,41 +40,47 @@ public class ConfigWindow : Window, IDisposable
 
     public override void Draw()
     {
-        var movable = Configuration.IsConfigWindowMovable;
+        var movable = _configuration.IsConfigWindowMovable;
         if (ImGui.Checkbox("Movable Config Window", ref movable))
         {
-            Configuration.IsConfigWindowMovable = movable;
-            Configuration.Save();
+            _configuration.IsConfigWindowMovable = movable;
+            _configuration.Save();
         }
 
-        var chatLog = Configuration.ShouldChatLog;
+        var chatLog = _configuration.ShouldChatLog;
         if (ImGui.Checkbox("Should chat log state change.", ref chatLog))
         {
-            Configuration.ShouldChatLog = chatLog;
-            Configuration.Save();
+            _configuration.ShouldChatLog = chatLog;
+            _configuration.Save();
         }
 
 
-        var toggleHeadgear = Configuration.ToggleHeadgear;
+        var toggleHeadgear = _configuration.ToggleHeadgear;
         if (ImGui.Checkbox("Toggle headgear on/off combat.", ref toggleHeadgear))
         {
-            Configuration.ToggleHeadgear = toggleHeadgear;
-            Configuration.Save();
+            _configuration.ToggleHeadgear = toggleHeadgear;
+            _configuration.Save();
         }
 
-        var toggleVisor = Configuration.ToggleVisor;
+        var toggleVisor = _configuration.ToggleVisor;
         if (ImGui.Checkbox("Toggle visor on/off combat.", ref toggleVisor))
         {
-            Configuration.ToggleVisor = toggleVisor;
-            Configuration.Save();
+            _configuration.ToggleVisor = toggleVisor;
+            _configuration.Save();
         }
 
-
-        var inverseToggles = Configuration.SetInverse;
+        var inverseToggles = _configuration.SetInverse;
         if (ImGui.Checkbox("Inverse toggle state. off -> on", ref inverseToggles))
         {
-            Configuration.SetInverse = inverseToggles;
-            Configuration.Save();
+            _configuration.SetInverse = inverseToggles;
+            _configuration.Save();
+        }
+        
+        var delay = _configuration.DelayMs;
+        if (ImGui.InputInt("Delay in milliseconds", ref delay))
+        {
+            _configuration.DelayMs = delay;
+            _configuration.Save();
         }
     }
 }

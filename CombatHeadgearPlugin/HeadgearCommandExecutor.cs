@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Dalamud.Game;
 using Dalamud.Logging;
 
@@ -9,10 +10,10 @@ namespace CombatHeadgearPlugin
     {
         private delegate void ProcessChatBoxDelegate(IntPtr uiModule, IntPtr message, IntPtr unused, byte a4);
 
-        private delegate IntPtr GetUIModuleDelegate(IntPtr basePtr);
+        private delegate IntPtr GetUiModuleDelegate(IntPtr basePtr);
 
-        private ProcessChatBoxDelegate? ProcessChatBox;
-        private IntPtr uiModule = IntPtr.Zero;
+        private ProcessChatBoxDelegate? _processChatBox;
+        private IntPtr _uiModule = IntPtr.Zero;
 
         public HeadgearCommandExecutor(ISigScanner sigScanner)
         {
@@ -23,13 +24,13 @@ namespace CombatHeadgearPlugin
         {
             try
             {
-                var getUIModulePtr = sigScanner.ScanText("E8 ?? ?? ?? ?? 48 83 7F ?? 00 48 8B F0");
+                var getUiModulePtr = sigScanner.ScanText("E8 ?? ?? ?? ?? 48 83 7F ?? 00 48 8B F0");
                 var processChatBoxPtr = sigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 45 84 C9");
                 var uiModulePtr = sigScanner.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 48 8D 54 24 ?? 48 83 C1 10 E8");
 
-                var getUIModule = Marshal.GetDelegateForFunctionPointer<GetUIModuleDelegate>(getUIModulePtr);
-                uiModule = getUIModule(*(IntPtr*)uiModulePtr);
-                ProcessChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(processChatBoxPtr);
+                var getUIModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(getUiModulePtr);
+                _uiModule = getUIModule(*(IntPtr*)uiModulePtr);
+                _processChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(processChatBoxPtr);
             }
             catch (Exception ex)
             {
@@ -37,9 +38,9 @@ namespace CombatHeadgearPlugin
             }
         }
 
-        public void ExecuteHeadgearCommand(bool show, Configuration configuration)
+        public async Task ExecuteHeadgearCommand(bool show, Configuration configuration)
         {
-            if (ProcessChatBox == null || uiModule == IntPtr.Zero)
+            if (_processChatBox == null || _uiModule == IntPtr.Zero)
             {
                 PluginLog.Error("Unable to execute headgear and visor command: ProcessChatBox or uiModule is not initialized.");
                 return;
@@ -48,6 +49,11 @@ namespace CombatHeadgearPlugin
             if (configuration.SetInverse)
             {
                 show = !show;
+            }
+            
+            if (configuration.DelayMs > 0)
+            {
+                await Task.Delay(configuration.DelayMs);
             }
 
             if (configuration.ToggleHeadgear)
@@ -79,7 +85,7 @@ namespace CombatHeadgearPlugin
                 Marshal.WriteInt64(mem1 + 8 + 8, bytes.Length + 1);
                 Marshal.WriteInt64(mem1 + 8 + 8 + 8, 0);
 
-                ProcessChatBox(uiModule, mem1, IntPtr.Zero, 0);
+                _processChatBox?.Invoke(_uiModule, mem1, IntPtr.Zero, 0);
             }
             finally
             {

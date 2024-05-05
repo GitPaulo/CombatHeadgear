@@ -1,4 +1,5 @@
-﻿using Dalamud.Game;
+﻿using System.Threading.Tasks;
+using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -11,10 +12,6 @@ namespace CombatHeadgearPlugin;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    public readonly WindowSystem WindowSystem = new("CombatHeadgearPlugin");
-    const string CommandName = "/combatheadgear";
-    const string CommandAlias = "/chg";
-
     private DalamudPluginInterface PluginInterface { get; init; }
     private ICommandManager CommandManager { get; init; }
     private IClientState ClientState { get; init; }
@@ -23,9 +20,14 @@ public sealed class Plugin : IDalamudPlugin
     private ConfigWindow ConfigWindow { get; init; }
     private HeadgearCommandExecutor HeadgearExecutor { get; init; }
     public Configuration Configuration { get; init; }
+    
+    public readonly WindowSystem WindowSystem = new("CombatHeadgearPlugin");
 
-    private bool lastCombatStatus;
-    private bool isPluginDisabled;
+    private const string CommandName = "/combatheadgear";
+    private const string CommandAlias = "/chg";
+    
+    private bool _lastCombatStatus;
+    private bool _isPluginDisabled;
 
     public Plugin(
         [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -33,21 +35,25 @@ public sealed class Plugin : IDalamudPlugin
         [RequiredVersion("1.0")] IClientState clientState,
         [RequiredVersion("1.0")] IFramework framework,
         [RequiredVersion("1.0")] ISigScanner sigScanner,
-        IChatGui chat)
+        [RequiredVersion("1.0")] IChatGui chat)
     {
+        // DI
         PluginInterface = pluginInterface;
         CommandManager = commandManager;
         ClientState = clientState;
         Framework = framework;
         Chat = chat;
 
-        HeadgearExecutor = new HeadgearCommandExecutor(sigScanner);
-
+        // Config
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Configuration.Initialize(PluginInterface);
         ConfigWindow = new ConfigWindow(this);
         WindowSystem.AddWindow(ConfigWindow);
+        
+        // Executor
+        HeadgearExecutor = new HeadgearCommandExecutor(sigScanner);
 
+        // Command Handlers
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
             HelpMessage = "Toggle headgear visibility in and out of combat."
@@ -57,6 +63,7 @@ public sealed class Plugin : IDalamudPlugin
             HelpMessage = "Toggle headgear visibility in and out of combat. [alias]"
         });
         
+        // Hooks
         Framework.Update += OnFrameworkUpdate;
         PluginInterface.UiBuilder.Draw += DrawUi;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
@@ -74,13 +81,13 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string command, string args)
     {
-        isPluginDisabled = !isPluginDisabled;
-        Chat.Print(isPluginDisabled ? "Combat Headgear is now disabled." : "Combat Headgear is now enabled.");
+        _isPluginDisabled = !_isPluginDisabled;
+        Chat.Print(_isPluginDisabled ? "Combat Headgear is now disabled." : "Combat Headgear is now enabled.");
     }
 
     private void DrawUi() => WindowSystem.Draw();
 
-    public void ToggleConfigUi() => ConfigWindow.Toggle();
+    private void ToggleConfigUi() => ConfigWindow.Toggle();
 
     private void OnFrameworkUpdate(IFramework framework)
     {
@@ -88,9 +95,9 @@ public sealed class Plugin : IDalamudPlugin
         {
             bool inCombat = player.StatusFlags.HasFlag(StatusFlags.InCombat);
 
-            if (inCombat != lastCombatStatus)
+            if (inCombat != _lastCombatStatus)
             {
-                lastCombatStatus = inCombat;
+                _lastCombatStatus = inCombat;
                 ToggleHeadgear(inCombat);
             }
         }
@@ -98,12 +105,12 @@ public sealed class Plugin : IDalamudPlugin
 
     private void ToggleHeadgear(bool inCombat)
     {
-        if (isPluginDisabled)
+        if (_isPluginDisabled)
         {
             return;
         }
         
-        HeadgearExecutor.ExecuteHeadgearCommand(inCombat, Configuration);
+        Task.Run(() => HeadgearExecutor.ExecuteHeadgearCommand(inCombat, Configuration));
 
         if (Configuration.ShouldChatLog)
         {
