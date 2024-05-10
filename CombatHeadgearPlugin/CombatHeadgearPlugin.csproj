@@ -3,7 +3,7 @@
   <Import Project="Dalamud.Plugin.Bootstrap.targets"/>
 
   <PropertyGroup>
-    <Version>0.0.0.1</Version>
+    <Version>1.1.0</Version>
     <Description>A Dalamud Plugin to Toggle Headgear on Combat</Description>
     <PackageProjectUrl>https://github.com/GitPaulo/CombatHeadgear</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
