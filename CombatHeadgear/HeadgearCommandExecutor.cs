@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Dalamud.Game;
 using Dalamud.Logging;
 
-namespace CombatHeadgearPlugin
+namespace CombatHeadgear
 {
     public class HeadgearCommandExecutor
     {

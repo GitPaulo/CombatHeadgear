@@ -6,9 +6,9 @@ using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using Dalamud.Game.ClientState.Objects.Enums;
-using CombatHeadgearPlugin.Windows;
+using CombatHeadgear.Windows;
 
-namespace CombatHeadgearPlugin;
+namespace CombatHeadgear;
 
 public sealed class Plugin : IDalamudPlugin
 {
@@ -21,7 +21,7 @@ public sealed class Plugin : IDalamudPlugin
     private HeadgearCommandExecutor HeadgearExecutor { get; init; }
     public Configuration Configuration { get; init; }
     
-    public readonly WindowSystem WindowSystem = new("CombatHeadgearPlugin");
+    public readonly WindowSystem WindowSystem = new("CombatHeadgear");
 
     private const string CommandName = "/combatheadgear";
     private const string CommandAlias = "/chg";

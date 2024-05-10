@@ -2,7 +2,7 @@
 using Dalamud.Plugin;
 using System;
 
-namespace CombatHeadgearPlugin;
+namespace CombatHeadgear;
 
 [Serializable]
 public class Configuration : IPluginConfiguration

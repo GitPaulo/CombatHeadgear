@@ -3,7 +3,7 @@ using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
-namespace CombatHeadgearPlugin.Windows;
+namespace CombatHeadgear.Windows;
 
 public class ConfigWindow : Window, IDisposable
 {

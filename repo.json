@@ -3,7 +3,7 @@
         "Author": "GitPaulo",
         "Name": "Combat Headgear",
         "Description": "Toggle headgear visibility in and out of combat.",
-        "InternalName": "CombatHeadgearPlugin",
+        "InternalName": "CombatHeadgear",
         "AssemblyVersion": "1.0.0",
         "RepoUrl": "https://github.com/GitPaulo/CombatHeadgear",
         "IconUrl": "https://raw.githubusercontent.com/GitPaulo/CombatHeadgear/master/Data/icon.png",
@@ -21,8 +21,8 @@
         "IsTestingExclusive": "False",
         "LastUpdated": 1708943558,
         "DownloadCount": 0,
-        "DownloadLinkInstall": "https://github.com/GitPaulo/CombatHeadgear/releases/download/1.0.0/CombatHeadgearPlugin.zip",
-        "DownloadLinkTesting": "https://github.com/GitPaulo/CombatHeadgear/releases/download/1.0.0/CombatHeadgearPlugin.zip",
-        "DownloadLinkUpdate": "https://github.com/GitPaulo/CombatHeadgear/releases/download/1.0.0/CombatHeadgearPlugin.zip"
+        "DownloadLinkInstall": "https://github.com/GitPaulo/CombatHeadgear/releases/download/1.1.0/CombatHeadgearPlugin.zip",
+        "DownloadLinkTesting": "https://github.com/GitPaulo/CombatHeadgear/releases/download/1.1.0/CombatHeadgearPlugin.zip",
+        "DownloadLinkUpdate": "https://github.com/GitPaulo/CombatHeadgear/releases/download/1.1.0/CombatHeadgearPlugin.zip"
     }
 ]
