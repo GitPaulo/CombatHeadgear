@@ -1,4 +1,4 @@
-﻿using Dalamud.Configuration;
+using Dalamud.Configuration;
 using Dalamud.Plugin;
 using System;
 
@@ -16,9 +16,9 @@ public class Configuration : IPluginConfiguration
     public int DelayMs { get; set; } = 0;
 
     // the below exist just to make saving less cumbersome
-    [NonSerialized] private DalamudPluginInterface? _pluginInterface;
+    [NonSerialized] private IDalamudPluginInterface? _pluginInterface;
 
-    public void Initialize(DalamudPluginInterface pluginInterface)
+    public void Initialize(IDalamudPluginInterface pluginInterface)
     {
         _pluginInterface = pluginInterface;
     }

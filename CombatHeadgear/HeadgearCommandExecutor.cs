@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Dalamud.Game;
-using Dalamud.Logging;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 
 namespace CombatHeadgear
 {
@@ -14,9 +15,11 @@ namespace CombatHeadgear
 
         private ProcessChatBoxDelegate? _processChatBox;
         private IntPtr _uiModule = IntPtr.Zero;
+        private IPluginLog _pluginLog;
 
-        public HeadgearCommandExecutor(ISigScanner sigScanner)
+        public HeadgearCommandExecutor(ISigScanner sigScanner, IPluginLog pluginLog)
         {
+            _pluginLog = pluginLog;
             InitializePointers(sigScanner);
         }
 
@@ -34,7 +37,7 @@ namespace CombatHeadgear
             }
             catch (Exception ex)
             {
-                PluginLog.Error($"Failed to initialize pointers: {ex.Message}");
+                _pluginLog.Error($"Failed to initialize pointers: {ex.Message}");
             }
         }
 
@@ -42,7 +45,7 @@ namespace CombatHeadgear
         {
             if (_processChatBox == null || _uiModule == IntPtr.Zero)
             {
-                PluginLog.Error("Unable to execute headgear and visor command: ProcessChatBox or uiModule is not initialized.");
+                _pluginLog.Error("Unable to execute headgear and visor command: ProcessChatBox or uiModule is not initialized.");
                 return;
             }
 

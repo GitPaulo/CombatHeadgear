@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Dalamud.Game;
 using Dalamud.Game.Command;
-using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
@@ -12,11 +11,12 @@ namespace CombatHeadgear;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    private DalamudPluginInterface PluginInterface { get; init; }
+    private IDalamudPluginInterface PluginInterface { get; init; }
     private ICommandManager CommandManager { get; init; }
     private IClientState ClientState { get; init; }
     private IFramework Framework { get; init; }
     private IChatGui Chat { get; init; }
+    private IPluginLog PluginLog { get; init; }
     private ConfigWindow ConfigWindow { get; init; }
     private HeadgearCommandExecutor HeadgearExecutor { get; init; }
     public Configuration Configuration { get; init; }
@@ -30,12 +30,14 @@ public sealed class Plugin : IDalamudPlugin
     private bool _isPluginDisabled;
 
     public Plugin(
-        [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-        [RequiredVersion("1.0")] ICommandManager commandManager,
-        [RequiredVersion("1.0")] IClientState clientState,
-        [RequiredVersion("1.0")] IFramework framework,
-        [RequiredVersion("1.0")] ISigScanner sigScanner,
-        [RequiredVersion("1.0")] IChatGui chat)
+        IDalamudPluginInterface pluginInterface,
+        ICommandManager commandManager,
+        IClientState clientState,
+        IFramework framework,
+        ISigScanner sigScanner,
+        IChatGui chat,
+        IPluginLog pluginLog
+     )
     {
         // DI
         PluginInterface = pluginInterface;
@@ -43,6 +45,7 @@ public sealed class Plugin : IDalamudPlugin
         ClientState = clientState;
         Framework = framework;
         Chat = chat;
+        PluginLog = pluginLog;
 
         // Config
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
@@ -51,7 +54,7 @@ public sealed class Plugin : IDalamudPlugin
         WindowSystem.AddWindow(ConfigWindow);
         
         // Executor
-        HeadgearExecutor = new HeadgearCommandExecutor(sigScanner);
+        HeadgearExecutor = new HeadgearCommandExecutor(sigScanner, PluginLog);
 
         // Command Handlers
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
