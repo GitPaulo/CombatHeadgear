@@ -2,7 +2,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Dalamud.Game;
-using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 
 namespace CombatHeadgear
@@ -10,7 +9,6 @@ namespace CombatHeadgear
     public class HeadgearCommandExecutor
     {
         private delegate void ProcessChatBoxDelegate(IntPtr uiModule, IntPtr message, IntPtr unused, byte a4);
-
         private delegate IntPtr GetUiModuleDelegate(IntPtr basePtr);
 
         private ProcessChatBoxDelegate? _processChatBox;
@@ -27,13 +25,18 @@ namespace CombatHeadgear
         {
             try
             {
-                var getUiModulePtr = sigScanner.ScanText("E8 ?? ?? ?? ?? 48 83 7F ?? 00 48 8B F0");
-                var processChatBoxPtr = sigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 45 84 C9");
-                var uiModulePtr = sigScanner.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 48 8D 54 24 ?? 48 83 C1 10 E8");
+                // Updated signatures
+                _processChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(
+                    sigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 45 84 C9"));
 
-                var getUIModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(getUiModulePtr);
-                _uiModule = getUIModule(*(IntPtr*)uiModulePtr);
-                _processChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(processChatBoxPtr);
+                var sigAddress = sigScanner.ScanText("49 8B DC 48 89 1D");
+                IntPtr targetAddress = sigAddress + 10 + Marshal.ReadInt32(sigAddress + 6);
+
+                var frameworkPtr = Marshal.ReadIntPtr(targetAddress);
+                var getUiModulePtr = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7B 1D 01");
+
+                var getUiModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(getUiModulePtr);
+                _uiModule = getUiModule(frameworkPtr);
             }
             catch (Exception ex)
             {
@@ -53,7 +56,7 @@ namespace CombatHeadgear
             {
                 show = !show;
             }
-            
+
             if (configuration.DelayMs > 0)
             {
                 await Task.Delay(configuration.DelayMs);
@@ -85,8 +88,8 @@ namespace CombatHeadgear
                 Marshal.WriteByte(mem2 + bytes.Length, 0);
                 Marshal.WriteInt64(mem1, mem2.ToInt64());
                 Marshal.WriteInt64(mem1 + 8, 64);
-                Marshal.WriteInt64(mem1 + 8 + 8, bytes.Length + 1);
-                Marshal.WriteInt64(mem1 + 8 + 8 + 8, 0);
+                Marshal.WriteInt64(mem1 + 16, bytes.Length + 1);
+                Marshal.WriteInt64(mem1 + 24, 0);
 
                 _processChatBox?.Invoke(_uiModule, mem1, IntPtr.Zero, 0);
             }
