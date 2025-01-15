@@ -1,7 +1,7 @@
 [
     {
         "Author": "GitPaulo",
-        "Name": "Combat Headgear",
+        "Name": "CombatHeadgear",
         "Description": "Toggle headgear visibility in and out of combat.",
         "InternalName": "CombatHeadgear",
         "AssemblyVersion": "3.0.0",
@@ -16,7 +16,7 @@
             "GitPaulo",
             "artin"
         ],
-        "DalamudApiLevel": 10,
+        "DalamudApiLevel": 11,
         "IsHide": "False",
         "IsTestingExclusive": "False",
         "DownloadLinkInstall": "https://github.com/GitPaulo/CombatHeadgear/releases/download/3.0.0/latest.zip",
