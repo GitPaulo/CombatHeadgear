@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
@@ -11,96 +10,87 @@ namespace CombatHeadgear;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    private IDalamudPluginInterface PluginInterface { get; init; }
-    private ICommandManager CommandManager { get; init; }
-    private IClientState ClientState { get; init; }
-    private IFramework Framework { get; init; }
-    private IChatGui Chat { get; init; }
-    private IPluginLog PluginLog { get; init; }
-    private ConfigWindow ConfigWindow { get; init; }
-    private HeadgearCommandExecutor HeadgearExecutor { get; init; }
-    public Configuration Configuration { get; init; }
-    
-    public readonly WindowSystem WindowSystem = new("CombatHeadgear");
+    private const string PluginName = "CombatHeadgear";
+    private const string PrimaryCommand = "/combatheadgear";
+    private const string CommandShortcut = "/chg";
 
-    private const string CommandName = "/combatheadgear";
-    private const string CommandAlias = "/chg";
-    
-    private bool _lastCombatStatus;
-    private bool _isPluginDisabled;
+    private readonly WindowSystem windowSystem = new(PluginName);
 
-    public Plugin(
-        IDalamudPluginInterface pluginInterface,
-        ICommandManager commandManager,
-        IClientState clientState,
-        IFramework framework,
-        ISigScanner sigScanner,
-        IChatGui chat,
-        IPluginLog pluginLog
-     )
+    private bool lastCombatStatus;
+    private bool isPluginDisabled;
+
+    public Plugin(IDalamudPluginInterface pluginInterface)
     {
-        // DI
-        PluginInterface = pluginInterface;
-        CommandManager = commandManager;
-        ClientState = clientState;
-        Framework = framework;
-        Chat = chat;
-        PluginLog = pluginLog;
+        pluginInterface.Create<Shared>();
 
-        // Config
-        Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-        Configuration.Initialize(PluginInterface);
-        ConfigWindow = new ConfigWindow(this);
-        WindowSystem.AddWindow(ConfigWindow);
-        
-        // Executor
-        HeadgearExecutor = new HeadgearCommandExecutor(sigScanner, PluginLog);
+        Shared.Config = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-        // Command Handlers
-        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+        InitWindows();
+        InitCommands();
+        InitServices();
+        InitHooks();
+
+        Shared.Log.Information($"Loaded {Shared.PluginInterface.Manifest.Name}");
+    }
+
+    private void InitWindows()
+    {
+        Shared.ConfigWindow = new ConfigWindow();
+        windowSystem.AddWindow(Shared.ConfigWindow);
+    }
+
+    private void InitCommands()
+    {
+        Shared.CommandManager.AddHandler(PrimaryCommand, new CommandInfo(OnCommand)
         {
             HelpMessage = "Toggle headgear visibility in and out of combat."
         });
-        CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand)
+        Shared.CommandManager.AddHandler(CommandShortcut, new CommandInfo(OnCommand)
         {
             HelpMessage = "Toggle headgear visibility in and out of combat. [alias]"
         });
-        
-        // Hooks
-        Framework.Update += OnFrameworkUpdate;
-        PluginInterface.UiBuilder.Draw += DrawUi;
-        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
+    }
+
+    private void InitServices()
+    {
+        Shared.HeadgearExecutor = new HeadgearCommandExecutor();
+    }
+
+    private void InitHooks()
+    {
+        Shared.Framework.Update += OnFrameworkUpdate;
+        Shared.PluginInterface.UiBuilder.Draw += DrawUi;
+        Shared.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
     }
 
     public void Dispose()
     {
-        WindowSystem.RemoveAllWindows();
-        ConfigWindow.Dispose();
+        windowSystem.RemoveAllWindows();
+        Shared.ConfigWindow.Dispose();
 
-        CommandManager.RemoveHandler(CommandName);
-        CommandManager.RemoveHandler(CommandAlias);
-        Framework.Update -= OnFrameworkUpdate;
+        Shared.CommandManager.RemoveHandler(PrimaryCommand);
+        Shared.CommandManager.RemoveHandler(CommandShortcut);
+        Shared.Framework.Update -= OnFrameworkUpdate;
     }
 
     private void OnCommand(string command, string args)
     {
-        _isPluginDisabled = !_isPluginDisabled;
-        Chat.Print(_isPluginDisabled ? "Combat Headgear is now disabled." : "Combat Headgear is now enabled.");
+        isPluginDisabled = !isPluginDisabled;
+        Shared.Chat.Print(isPluginDisabled ? "Combat Headgear is now disabled." : "Combat Headgear is now enabled.");
     }
 
-    private void DrawUi() => WindowSystem.Draw();
-
-    private void ToggleConfigUi() => ConfigWindow.Toggle();
+    private void DrawUi() => windowSystem.Draw();
+    private void ToggleConfigUi() => Shared.ConfigWindow.Toggle();
 
     private void OnFrameworkUpdate(IFramework framework)
     {
-        if (ClientState.LocalPlayer is { } player)
+        if (Shared.ClientState.LocalPlayer is { } player)
         {
             bool inCombat = player.StatusFlags.HasFlag(StatusFlags.InCombat);
 
-            if (inCombat != _lastCombatStatus)
+            if (inCombat != lastCombatStatus)
             {
-                _lastCombatStatus = inCombat;
+                lastCombatStatus = inCombat;
                 ToggleHeadgear(inCombat);
             }
         }
@@ -108,16 +98,16 @@ public sealed class Plugin : IDalamudPlugin
 
     private void ToggleHeadgear(bool inCombat)
     {
-        if (_isPluginDisabled)
+        if (isPluginDisabled)
         {
             return;
         }
-        
-        Task.Run(() => HeadgearExecutor.ExecuteHeadgearCommand(inCombat, Configuration));
 
-        if (Configuration.ShouldChatLog)
+        Task.Run(() => Shared.HeadgearExecutor.ExecuteHeadgearCommand(inCombat));
+
+        if (Shared.Config.ShouldChatLog)
         {
-            Chat.Print($"Toggled headgear visibility. In combat: {inCombat}");
+            Shared.Chat.Print($"Toggled headgear visibility. In combat: {inCombat}");
         }
     }
 }

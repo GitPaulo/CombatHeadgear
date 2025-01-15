@@ -1,8 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Dalamud.Game;
-using Dalamud.Plugin.Services;
 
 namespace CombatHeadgear
 {
@@ -11,64 +9,65 @@ namespace CombatHeadgear
         private delegate void ProcessChatBoxDelegate(IntPtr uiModule, IntPtr message, IntPtr unused, byte a4);
         private delegate IntPtr GetUiModuleDelegate(IntPtr basePtr);
 
-        private ProcessChatBoxDelegate? _processChatBox;
-        private IntPtr _uiModule = IntPtr.Zero;
-        private IPluginLog _pluginLog;
+        private ProcessChatBoxDelegate? processChatBoxDelegate;
+        private IntPtr uiModule = IntPtr.Zero;
 
-        public HeadgearCommandExecutor(ISigScanner sigScanner, IPluginLog pluginLog)
+        public HeadgearCommandExecutor()
         {
-            _pluginLog = pluginLog;
-            InitializePointers(sigScanner);
+            InitPointers();
         }
 
-        private unsafe void InitializePointers(ISigScanner sigScanner)
+        private unsafe void InitPointers()
         {
             try
             {
-                // Updated signatures
-                _processChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(
-                    sigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 45 84 C9"));
+                // Scan for the ProcessChatBox function
+                processChatBoxDelegate = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(
+                    Shared.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 45 84 C9"));
 
-                var sigAddress = sigScanner.ScanText("49 8B DC 48 89 1D");
+                // Scan for the UI module pointer
+                var sigAddress = Shared.SigScanner.ScanText("49 8B DC 48 89 1D");
                 IntPtr targetAddress = sigAddress + 10 + Marshal.ReadInt32(sigAddress + 6);
 
                 var frameworkPtr = Marshal.ReadIntPtr(targetAddress);
-                var getUiModulePtr = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7B 1D 01");
+                var getUiModulePtr = Shared.SigScanner.ScanText("E8 ?? ?? ?? ?? 80 7B 1D 01");
 
                 var getUiModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(getUiModulePtr);
-                _uiModule = getUiModule(frameworkPtr);
+                uiModule = getUiModule(frameworkPtr);
             }
             catch (Exception ex)
             {
-                _pluginLog.Error($"Failed to initialize pointers: {ex.Message}");
+                Shared.Log.Error($"Failed to initialize pointers: {ex.Message}");
             }
         }
 
-        public async Task ExecuteHeadgearCommand(bool show, Configuration configuration)
+        public async Task ExecuteHeadgearCommand(bool show)
         {
-            if (_processChatBox == null || _uiModule == IntPtr.Zero)
+            if (processChatBoxDelegate == null || uiModule == IntPtr.Zero)
             {
-                _pluginLog.Error("Unable to execute headgear and visor command: ProcessChatBox or uiModule is not initialized.");
+                Shared.Log.Error("Unable to execute headgear and visor command: ProcessChatBox or uiModule is not initialized.");
                 return;
             }
 
-            if (configuration.SetInverse)
+            // Apply Shared.Config settings
+            if (Shared.Config.SetInverse)
             {
                 show = !show;
             }
 
-            if (configuration.DelayMs > 0)
+            if (Shared.Config.DelayMs > 0)
             {
-                await Task.Delay(configuration.DelayMs);
+                await Task.Delay(Shared.Config.DelayMs);
             }
 
-            if (configuration.ToggleHeadgear)
+            // Execute headgear and visor commands
+            if (Shared.Config.ToggleHeadgear)
             {
                 var headgearCommand = show ? "/displayhead on" : "/displayhead off";
                 ExecuteCommand(headgearCommand);
             }
 
-            if (configuration.ToggleVisor)
+            if (Shared.Config.ToggleVisor)
             {
                 var visorCommand = show ? "/visor on" : "/visor off";
                 ExecuteCommand(visorCommand);
@@ -77,26 +76,29 @@ namespace CombatHeadgear
 
         private void ExecuteCommand(string command)
         {
-            var bytes = System.Text.Encoding.UTF8.GetBytes(command);
+            var commandBytes = System.Text.Encoding.UTF8.GetBytes(command);
 
-            var mem1 = Marshal.AllocHGlobal(400);
-            var mem2 = Marshal.AllocHGlobal(bytes.Length + 30);
+            var memoryBlock1 = Marshal.AllocHGlobal(400);
+            var memoryBlock2 = Marshal.AllocHGlobal(commandBytes.Length + 30);
 
             try
             {
-                Marshal.Copy(bytes, 0, mem2, bytes.Length);
-                Marshal.WriteByte(mem2 + bytes.Length, 0);
-                Marshal.WriteInt64(mem1, mem2.ToInt64());
-                Marshal.WriteInt64(mem1 + 8, 64);
-                Marshal.WriteInt64(mem1 + 16, bytes.Length + 1);
-                Marshal.WriteInt64(mem1 + 24, 0);
+                // Copy command bytes into allocated memory
+                Marshal.Copy(commandBytes, 0, memoryBlock2, commandBytes.Length);
+                Marshal.WriteByte(memoryBlock2 + commandBytes.Length, 0);
+                Marshal.WriteInt64(memoryBlock1, memoryBlock2.ToInt64());
+                Marshal.WriteInt64(memoryBlock1 + 8, 64);
+                Marshal.WriteInt64(memoryBlock1 + 16, commandBytes.Length + 1);
+                Marshal.WriteInt64(memoryBlock1 + 24, 0);
 
-                _processChatBox?.Invoke(_uiModule, mem1, IntPtr.Zero, 0);
+                // Execute the command
+                processChatBoxDelegate?.Invoke(uiModule, memoryBlock1, IntPtr.Zero, 0);
             }
             finally
             {
-                Marshal.FreeHGlobal(mem1);
-                Marshal.FreeHGlobal(mem2);
+                // Free allocated memory
+                Marshal.FreeHGlobal(memoryBlock1);
+                Marshal.FreeHGlobal(memoryBlock2);
             }
         }
     }

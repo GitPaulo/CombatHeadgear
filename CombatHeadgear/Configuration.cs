@@ -14,17 +14,8 @@ public class Configuration : IPluginConfiguration
     public bool ToggleVisor { get; set; } = false;
     public bool SetInverse { get; set; } = false;
     public int DelayMs { get; set; } = 0;
-
-    // the below exist just to make saving less cumbersome
-    [NonSerialized] private IDalamudPluginInterface? _pluginInterface;
-
-    public void Initialize(IDalamudPluginInterface pluginInterface)
-    {
-        _pluginInterface = pluginInterface;
-    }
-
-    public void Save()
-    {
-        _pluginInterface!.SavePluginConfig(this);
+    
+    public void Save() {
+        Shared.PluginInterface.SavePluginConfig(this);
     }
 }

@@ -3,9 +3,6 @@
     <Import Project="Dalamud.Plugin.Bootstrap.targets"/>
 
     <PropertyGroup>
-        <TargetFramework>net8.0-windows</TargetFramework>
-        <LangVersion>12.0</LangVersion>
-        <EnablePreviewFeatures>true</EnablePreviewFeatures>
         <Authors>GitPaulo</Authors>
         <Version>1.0.1</Version>
         <Description>A plugin to automatically toggle headgear in/out of combat.</Description>
