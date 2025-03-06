@@ -12,7 +12,7 @@ public class ConfigWindow : Window, IDisposable
         Flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
                 ImGuiWindowFlags.NoScrollWithMouse;
 
-        Size = new Vector2(380, 205);
+        Size = new Vector2(360, 180);
         SizeCondition = ImGuiCond.Always;
     }
 
@@ -33,20 +33,12 @@ public class ConfigWindow : Window, IDisposable
 
     public override void Draw()
     {
-        var movable = Shared.Config.IsConfigWindowMovable;
-        if (ImGui.Checkbox("Movable Config Window", ref movable))
-        {
-            Shared.Config.IsConfigWindowMovable = movable;
-            Shared.Config.Save();
-        }
-
         var chatLog = Shared.Config.ShouldChatLog;
-        if (ImGui.Checkbox("Should chat log state change.", ref chatLog))
+        if (ImGui.Checkbox("Chat log state change.", ref chatLog))
         {
             Shared.Config.ShouldChatLog = chatLog;
             Shared.Config.Save();
         }
-
 
         var toggleHeadgear = Shared.Config.ToggleHeadgear;
         if (ImGui.Checkbox("Toggle headgear on/off combat.", ref toggleHeadgear))
@@ -70,7 +62,7 @@ public class ConfigWindow : Window, IDisposable
         }
         
         var delay = Shared.Config.DelayMs;
-        if (ImGui.InputInt("Delay in milliseconds", ref delay))
+        if (ImGui.InputInt("Delay in ms", ref delay))
         {
             Shared.Config.DelayMs = delay;
             Shared.Config.Save();
